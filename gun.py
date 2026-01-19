@@ -21,12 +21,15 @@ class WeaponState(Enum):
     COCKING = 4
 
 
+class Bullet(arcade.Sprite):  #  хз пока что!
+     #нужны текстуры пули
+
+
 class Weapon:
     """Базовый класс оружия"""
 
-
     def init(self, name, weapon_type, damage, fire_rate, reload_time,
-             magazine_size, spread, bullet_speed, bullets_per_shot = 1):
+             magazine_size, spread, bullet_speed, bullets_per_shot=1):
         self.name = name
         self.weapon_type = weapon_type
         self.damage = damage
@@ -41,11 +44,16 @@ class Weapon:
         self.state = WeaponState.READY
         self.time_since_last_shot = fire_rate  # Готово стрелять сразу
         self.reload_progress = 0
-
+        self.recoil = 0
 
     def can_shoot(self):
         return (self.state == WeaponState.READY and
-                    self.current_ammo > 0 and
-                    self.time_since_last_shot >= self.fire_rate)
+                self.current_ammo > 0 and
+                self.time_since_last_shot >= self.fire_rate)
 
-    def shoot(self):
+    def shoot(self, x, y):
+        if not self.can_shoot():
+            return False
+        self.current_ammo -= 1
+        self.time_since_last_shot = 0
+        self.recoil = 10
