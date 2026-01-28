@@ -21,8 +21,10 @@ class WeaponState(Enum):
     COCKING = 4
 
 
-class Bullet(arcade.Sprite):  #  хз пока что!
-     #нужны текстуры пули
+class Bullet(arcade.Sprite):  # хз пока что!
+
+
+# нужны текстуры пули
 
 
 class Weapon:
@@ -56,4 +58,46 @@ class Weapon:
             return False
         self.current_ammo -= 1
         self.time_since_last_shot = 0
-        self.recoil = 10
+        self.recoil = 10  # если будем отдачу делать потом
+
+    def _after_shot(self):
+        """Действия после выстрела (переопределяется)"""
+        pass
+
+    def start_reload(self):
+        """Начать перезарядку"""
+        if self.current_ammo < self.magazine_size and self.state != WeaponState.RELOADING:
+            self.state = WeaponState.RELOADING
+            self.reload_progress = 0
+            return True
+        return False
+
+    def update(self, delta_time):
+        """Обновление оружия"""
+        self.time_since_last_shot += delta_time
+
+        # Обновление визуальных эффектов
+        if self.muzzle_flash_time > 0:
+            self.muzzle_flash_time -= delta_time
+
+        if self.recoil > 0:
+            self.recoil -= delta_time * 30
+            if self.recoil < 0:
+                self.recoil = 0
+
+        # Обработка перезарядки
+        if self.state == WeaponState.RELOADING:
+            self.reload_progress += delta_time
+            if self.reload_progress >= self.reload_time:
+                self._finish_reload()
+
+        # Обработка взведения
+        elif self.state == WeaponState.COCKING:
+            if self.time_since_last_shot >= 0.3:  # Время взведения
+                self.state = WeaponState.READY
+
+        def _finish_reload(self):
+            """Завершение перезарядки"""
+            self.current_ammo = self.magazine_size
+            self.state = WeaponState.READY
+            self.reload_progress = 0
